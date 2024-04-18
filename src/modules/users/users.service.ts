@@ -26,9 +26,6 @@ export class UsersService {
       throw new ConflictException('This user already exists.')
     }
 
-    console.log(createUserDto.password)
-    console.log(this.isPasswordValid(createUserDto.password))
-
     if (!this.isPasswordValid(createUserDto.password)) {
       throw new BadRequestException('Password must contain at least 8 characters, including letters, numbers, and symbols.');
     }
@@ -72,17 +69,22 @@ export class UsersService {
       throw new NotFoundException('User not found.')
     }
 
-    const findUser = await this.prisma.user.findUnique({
-      where: {email: updateUserDto.email}
-    })
-
-    if(findUser){
-      throw new ConflictException('This user already exists')
+    if(updateUserDto.email){
+      const findUser = await this.prisma.user.findUnique({
+        where: {email: updateUserDto.email}
+      })
+  
+      if(findUser){
+        throw new ConflictException('This user already exists')
+      }
     }
 
-    // if(!this.isPasswordValid(updateUserDto.password)){
-    //   throw new ConflictException('Password must contain at least 8 characters, including letters, numbers, and symbols.')
-    // }
+    if(updateUserDto.password){
+      if(!this.isPasswordValid(updateUserDto.password)){
+        throw new ConflictException('Password must contain at least 8 characters, including letters, numbers, and symbols.')
+      }
+    }
+
 
     const updateUser = await this.prisma.user.update({
       where: {id},
@@ -105,5 +107,18 @@ export class UsersService {
     await this.prisma.user.delete({
       where: {id}
     })
+  }
+
+  async findUserByEmail(email: string){
+
+    const foundUser = await this.prisma.user.findUnique({
+      where: {email: email}
+    })
+
+    if(!foundUser){
+      throw new NotFoundException('User not found.')
+    }
+
+    return foundUser
   }
 }
