@@ -5,10 +5,12 @@ import { PrismaService } from 'src/database/prisma.service';
 import { User } from './entities/user.entity';
 import { plainToInstance } from 'class-transformer';
 import { hashSync } from 'bcrypt';
+import { randomUUID } from 'crypto';
+import { EmailService } from './../../utils/email.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService){}
+  constructor(private prisma: PrismaService, private emailService: EmailService){}
  
   private isPasswordValid(password: string): boolean {
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
@@ -120,5 +122,48 @@ export class UsersService {
     }
 
     return foundUser
+  }
+
+  async sendEmailResetPassword(email: string){
+
+    const user = await this.prisma.user.findUnique({
+      where: {email: email}
+    })
+
+    if(!user){
+      throw new NotFoundException("User not found.")
+    }
+
+    const resetToken = randomUUID()
+    await this.prisma.user.update({
+      where: {email: email},
+      data: {token: resetToken}
+    })
+
+    const resetPasswordTemplate = this.emailService.resetPasswordTemplate(email, user.name, resetToken)
+
+    await this.emailService.sendEmail(resetPasswordTemplate)
+  }
+
+  async resetPassword(token: string, password: string){
+    const user = await this.prisma.user.findFirst({
+      where: {token: token}
+    })
+
+    if(!user){
+      throw new NotFoundException("User not found.")
+    }
+
+    if(!this.isPasswordValid(password)){
+      throw new ConflictException('Password must contain at least 8 characters, including letters, numbers, and symbols.')
+    }
+
+    await this.prisma.user.update({
+      where: {id: user.id},
+      data: {
+        password: hashSync(password, 10),
+        token: null
+      }
+    })
   }
 }
