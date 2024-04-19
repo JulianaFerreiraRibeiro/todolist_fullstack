@@ -3,6 +3,7 @@ import { CreateFolderDto } from './dto/create-folder.dto';
 import { UpdateFolderDto } from './dto/update-folder.dto';
 import { PrismaService } from 'src/database/prisma.service';
 import { Folder } from './entities/folder.entity';
+import { MinLength } from 'class-validator';
 
 @Injectable()
 export class FoldersService {
@@ -26,10 +27,18 @@ export class FoldersService {
   }
 
   async findAllFolders(userId: string) {
-    return await this.prisma.folder.findMany({
-      where: {userId: userId}
+    const folders = await this.prisma.folder.findMany({
+      where: {userId: userId},
+      include: {tasks: true}
     })
+
+    if(!folders){
+      throw new NotFoundException('Folders not found.')
+    }
+
+    return folders
   }
+
 
   async findOneFolder(id: string, userId: string) {
     const folder = await this.prisma.folder.findUnique({
