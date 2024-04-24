@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .body{
+    @apply bg-orange-300
+  }
+
+  .center_flex{
+    @apply flex flex-col justify-center items-center
+  }
+
+  .button_gradient{
+    @apply text-lg font-bold border-none rounded-full bg-gradient-to-r from-orange-400 to-red-400 text-white text-center px-8 shadow-2xl mt-2 h-12 w-64 items-center justify-center gap-5 tracking-wider
+  }
+
+  .button_homepage{
+    @apply flex px-5 items-center bg-white absolute left-4 top-4 rounded-full h-14 gap-2 mt-2
+  }
+
+  .rounded_input{
+    @apply min-w-80 min-h-14 pl-6 rounded-full
+  }
+
+  .red_span{
+    @apply text-red-600 font-black
+  }
+
+  .relative_form{
+    @apply flex flex-col relative
+  }
+
+  .absolute_icons{
+    @apply absolute top-5 right-7 text-red-500 w-5
+  }
+
+  .errors_form{
+    @apply text-black ml-3 text-sm
+  }
+}
